@@ -40,6 +40,8 @@
 ///
 /// What is the sum of all of the calibration values?
 
+import 'dart:io';
+
 extension on String {
   int parseToInt() {
     return switch (this) {
@@ -73,7 +75,13 @@ int? getValue(String line, {bool onlyDigits = false}) {
   return firstNumber.parseToInt() * 10 + lastNumber.parseToInt();
 }
 
-void main(List<String> inputText) {
+Future<List<String>> readInputFile() async {
+  File file = new File('input.txt');
+  return file.readAsLines();
+}
+
+Future<void> main() async {
+  final inputText = await readInputFile();
   int sum = 0;
   int sumOnlyDigits = 0;
   for (final line in inputText) {
