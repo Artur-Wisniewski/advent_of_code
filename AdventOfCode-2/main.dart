@@ -1,4 +1,4 @@
-import 'dart:io';
+import '../utils.dart';
 
 /// --- Day 2: Cube Conundrum ---
 ///
@@ -125,10 +125,6 @@ class GameSet {
   bool isSetPossible() {
     return redCubesSum <= maxRedCubes && greenCubesSum <= maxGreenCubes && blueCubesSum <= maxBlueCubes;
   }
-}
-
-Future<List<String>> getInput() async {
-  return await File('input.txt').readAsLines();
 }
 
 Future<void> main() async {
