@@ -25,19 +25,46 @@ class Scratchcard {
     return Scratchcard(id: id, winningNumbers: winningNumbers, scratchcardNumbers: scratchcardNumbers);
   }
 
+  int getWinningNumbersCount() => scratchcardNumbers.where((element) => winningNumbers.contains(element)).length;
+
   int getPointsWorth() {
-    final power = scratchcardNumbers.where((element) => winningNumbers.contains(element)).length - 1;
+    final power = getWinningNumbersCount() - 1;
     if (power < 0) return 0;
     return pow(2, power).toInt();
   }
 }
 
+List<Scratchcard> getWonScratchcardFromScratchcard(Scratchcard scratchcard, List<Scratchcard> originalScratchCards) {
+  final List<Scratchcard> allScratchCards = [];
+  allScratchCards.add(scratchcard);
+  final winningNumbersCount = scratchcard.getWinningNumbersCount();
+  if (winningNumbersCount > 0) {
+    for (int j = 1; j < winningNumbersCount + 1; j++) {
+      final scratchCardIndex = scratchcard.id - 1 + j;
+      if (scratchCardIndex < originalScratchCards.length) {
+        final scratchcardCopy = originalScratchCards[scratchCardIndex];
+        final scratchCards = getWonScratchcardFromScratchcard(scratchcardCopy, originalScratchCards);
+        allScratchCards.addAll(scratchCards);
+      }
+    }
+  }
+  return allScratchCards;
+}
+
 Future<void> main() async {
   final inputText = await getInput();
   int pointsSum = 0;
+  final originalScratchcards = <Scratchcard>[];
   for (final line in inputText) {
     final scratchcard = Scratchcard.fromText(line: line);
+    originalScratchcards.add(scratchcard);
     pointsSum += scratchcard.getPointsWorth();
   }
+  int sumOfWonScratchcards = 0;
+  for (final scratchcard in originalScratchcards) {
+    sumOfWonScratchcards += getWonScratchcardFromScratchcard(scratchcard, originalScratchcards).length;
+  }
+
   print('Sum of the points: $pointsSum');
+  print('Sum of the won scratchcards: $sumOfWonScratchcards');
 }
