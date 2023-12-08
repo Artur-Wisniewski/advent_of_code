@@ -1,5 +1,7 @@
 import '../utils.dart';
 
+/// --- Day 3 ---
+
 class Engine {
   final List<List<String>> _grid;
   final int _width;
