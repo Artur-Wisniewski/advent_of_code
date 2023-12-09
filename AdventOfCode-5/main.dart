@@ -102,10 +102,6 @@ class Range {
 
   factory Range.singleValue({required int value}) => Range(start: value, end: value);
 
-  bool hasCommonValues({required Range range}) {
-    return (range.start <= this.end && range.end >= this.start);
-  }
-
   Range shift(int shiftValue) {
     return Range(start: this.start + shiftValue, end: this.end + shiftValue);
   }

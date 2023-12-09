@@ -9,15 +9,6 @@ Future<void> main() async {
 void testRangeClass() {
   final Range range = Range(start: 4, end: 7);
 
-  void testHasCommonValues() {
-    assert(range.hasCommonValues(range: Range(start: 2, end: 4)), 'Range 4-7 has common values with range 2-4');
-    assert(!range.hasCommonValues(range: Range(start: 0, end: 2)), 'Range 4-7 has no common values with range 0-2');
-    assert(!range.hasCommonValues(range: Range(start: 0, end: 3)), 'Range 4-7 has no common values with range 0-3');
-    assert(range.hasCommonValues(range: Range(start: 1, end: 4)), 'Range 4-7 has common values with range 1-4');
-    assert(range.hasCommonValues(range: Range(start: 7, end: 10)), 'Range 4-7 has common values with range 7-10');
-    assert(!range.hasCommonValues(range: Range(start: 8, end: 10)), 'Range 4-7 has no common values with range 8-10');
-  }
-
   void testShift() {
     assert(range.shift(1).start == 5, 'Range 4-7 shifted by 1 starts at 5');
     assert(range.shift(1).end == 8, 'Range 4-7 shifted by 1 ends at 8');
@@ -143,7 +134,6 @@ void testRangeClass() {
     testCase8SingleValues();
   }
 
-  testHasCommonValues();
   testShift();
   testCutOut();
 }
