@@ -49,4 +49,15 @@ Future<void> main() async {
   }
   print(multiplication);
 
+  // part 2
+  final durations2 = onlyNumbersRegExp.allMatches(durationsText).map((e) => e.group(0)).toList();
+  final distances2 = onlyNumbersRegExp.allMatches(distancesText).map((e) => e.group(0)).toList();
+  final StringBuffer bufferDuration = StringBuffer();
+  final StringBuffer bufferDistance = StringBuffer();
+  for(int i = 0; i < durations2.length; i++) {
+    bufferDuration.write(durations2[i]);
+    bufferDistance.write(distances2[i]);
+  }
+  final race = Race(duration: int.parse(bufferDuration.toString()), distanceRecord: int.parse(bufferDistance.toString()));
+  print(race.findBeatingHoldingStrategiesCount());
 }
