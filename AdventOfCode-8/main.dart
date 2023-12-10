@@ -25,6 +25,8 @@ class Route {
 
 const startKey = 'AAA';
 const endKey = 'ZZZ';
+const startSymbol = 'A';
+const endSymbol = 'Z';
 
 Future<void> main() async {
   final inputLines = await getInput(fileName: 'input.txt');
@@ -37,10 +39,11 @@ Future<void> main() async {
   for (final route in routes) {
     route.wireRoutes(routes);
   }
+  // Part #1
   int i = 0;
   Route currentRoute = routes.firstWhere((element) => element.key == startKey);
-  for (;;++i) {
-    final instruction = instructions[i%(instructions.length)];
+  for (;; ++i) {
+    final instruction = instructions[i % (instructions.length)];
     if (currentRoute.key == endKey) {
       break;
     }
@@ -48,9 +51,28 @@ Future<void> main() async {
       currentRoute = currentRoute.leftRoute!;
     } else if (instruction == 'R') {
       currentRoute = currentRoute.rightRoute!;
-    } else {
-      throw Exception('Unknown instruction: $instruction');
     }
   }
-  print('Number of steps: $i');
+  print('PART1: Number of steps: $i');
+
+  // Part #2
+  List<Route> currentRoutes = routes.where((element) => element.key.endsWith(startSymbol)).toList();
+  List<int> stepsList = [];
+  for (final route in currentRoutes) {
+    Route currentRoute = route;
+    int steps = 0;
+    for (;; ++steps) {
+      final instruction = instructions[steps % (instructions.length)];
+      if (currentRoute.key.endsWith(endSymbol)) {
+        break;
+      }
+      if (instruction == 'L') {
+        currentRoute = currentRoute.leftRoute!;
+      } else if (instruction == 'R') {
+        currentRoute = currentRoute.rightRoute!;
+      }
+    }
+    stepsList.add(steps);
+  }
+  print('PART2: Number of steps: ${leastCommonMultipleList(stepsList)}');
 }
