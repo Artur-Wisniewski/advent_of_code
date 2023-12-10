@@ -2,7 +2,6 @@ import 'main.dart';
 
 void main() {
   void predictionTestPart1(){
-
     // 1 2 3 4 5
     // expected: 6
     void test1(){
@@ -144,5 +143,19 @@ void main() {
     test14();
   }
 
+  void predictionTestPart2(){
+    // 10  13  16  21  30  45
+    // 5
+    void test1(){
+      final List<int> values = [10, 13, 16, 21, 30, 45];
+      final int expected = 5;
+      final int actual = predictNextValue(values, directionForward: false);
+      assert(expected == actual, 'Expected: $expected, Actual: $actual');
+    }
+
+    test1();
+  }
+
   predictionTestPart1();
+  predictionTestPart2();
 }
