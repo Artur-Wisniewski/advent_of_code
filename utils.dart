@@ -22,3 +22,10 @@ int leastCommonMultipleList(List<int> numbers) {
   }
   return answer;
 }
+
+class Position {
+  int x;
+  int y;
+
+  Position(this.x, this.y);
+}
