@@ -39,8 +39,8 @@ Future<void> main() async {
   final inputText = await getInput(fileName: 'input.txt');
   final [_, durationsText] = inputText[0].split(':');
   final [_, distancesText] = inputText[1].split(':');
-  final durations = onlyNumbersRegExp.allMatches(durationsText).map((e) => int.parse(e.group(0)!)).toList();
-  final distances = onlyNumbersRegExp.allMatches(distancesText).map((e) => int.parse(e.group(0)!)).toList();
+  final durations = onlyPositiveNumbersRegExp.allMatches(durationsText).map((e) => int.parse(e.group(0)!)).toList();
+  final distances = onlyPositiveNumbersRegExp.allMatches(distancesText).map((e) => int.parse(e.group(0)!)).toList();
   int multiplication = 1;
   for (int i = 0; i < durations.length; i++) {
     final strategiesNumber = Race(duration: durations[i], distanceRecord: distances[i]).findBeatingHoldingStrategiesCount();
@@ -50,8 +50,8 @@ Future<void> main() async {
   print(multiplication);
 
   // part 2
-  final durations2 = onlyNumbersRegExp.allMatches(durationsText).map((e) => e.group(0)).toList();
-  final distances2 = onlyNumbersRegExp.allMatches(distancesText).map((e) => e.group(0)).toList();
+  final durations2 = onlyPositiveNumbersRegExp.allMatches(durationsText).map((e) => e.group(0)).toList();
+  final distances2 = onlyPositiveNumbersRegExp.allMatches(distancesText).map((e) => e.group(0)).toList();
   final StringBuffer bufferDuration = StringBuffer();
   final StringBuffer bufferDistance = StringBuffer();
   for(int i = 0; i < durations2.length; i++) {

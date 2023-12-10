@@ -19,9 +19,9 @@ class Scratchcard {
     final id = int.parse(RegExp(r'\S+$').allMatches(scratchcardConfig[0]).map((e) => e.group(0)).first!);
     final numbers = scratchcardConfig[1].split('|');
     final winningNumbers =
-        onlyNumbersRegExp.allMatches(numbers[0]).map((e) => e.group(0)).map<int>((e) => int.parse(e!)).toList();
+        onlyPositiveNumbersRegExp.allMatches(numbers[0]).map((e) => e.group(0)).map<int>((e) => int.parse(e!)).toList();
     final scratchcardNumbers =
-        onlyNumbersRegExp.allMatches(numbers[1]).map((e) => e.group(0)).map<int>((e) => int.parse(e!)).toList();
+        onlyPositiveNumbersRegExp.allMatches(numbers[1]).map((e) => e.group(0)).map<int>((e) => int.parse(e!)).toList();
     return Scratchcard(id: id, winningNumbers: winningNumbers, scratchcardNumbers: scratchcardNumbers);
   }
 
