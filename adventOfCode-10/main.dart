@@ -19,6 +19,24 @@ enum Directions {
       Directions.west => Directions.east,
     };
   }
+
+  bool isVertical() {
+    return switch (this) {
+      Directions.north => true,
+      Directions.south => true,
+      Directions.east => false,
+      Directions.west => false,
+    };
+  }
+
+  bool isHorizontal() {
+    return switch (this) {
+      Directions.north => false,
+      Directions.south => false,
+      Directions.east => true,
+      Directions.west => true,
+    };
+  }
 }
 
 enum TileTypes {
@@ -47,6 +65,24 @@ enum TileTypes {
     };
   }
 
+  bool canGoInDirection({required Directions goTo, required List<Directions> sideOnTile}) {
+    if (TileTypes.ground == this) return true;
+    if (TileTypes.start == this) return false;
+    if (this.directionsToConnect.contains(goTo)) return true;
+    // Straight lines
+    if (this.directionsToConnect[0].opposite == this.directionsToConnect[1]) {
+      final perpendicularDirection = sideOnTile
+          .firstWhere((element) => (element != this.directionsToConnect[0] && element != this.directionsToConnect[1]));
+      if (goTo == perpendicularDirection) return true;
+      return false;
+    }
+    // Corners
+    if (sideOnTile.contains(this.directionsToConnect[0]) && sideOnTile.contains(this.directionsToConnect[1])) {
+      return sideOnTile.contains(goTo);
+    }
+    return true;
+  }
+
   final String symbol;
 
   final List<Directions> directionsToConnect;
@@ -58,6 +94,10 @@ class Tile {
   int? distanceToStart;
   final List<List<Tile>> tileMatrix;
   Directions? directionToStart;
+  bool? isInsideLoop;
+  bool isChecked = false;
+
+  bool get isInLoop => distanceToStart != null;
 
   Tile(this.type, this.position, this.tileMatrix, {this.distanceToStart});
 
@@ -98,6 +138,127 @@ class Tile {
     final Tile? nextTile = getTileAt(direction: nextDirection);
     nextTile?.directionToStart = nextDirection.opposite;
     return nextTile;
+  }
+}
+
+void markTilesOutsideLoop(List<List<Tile>> tileMatrix) {
+  for (int i = 0; i < tileMatrix.first.length; i++) {
+    final Tile tile = tileMatrix.first[i];
+    markTilesOutsideLoopGroup(
+      tileMatrix: tileMatrix,
+      tile: tile,
+      comeFromDirectionVertical: Directions.north,
+      comeFromDirectionHorizontal: i != tileMatrix[0].length - 1 ? Directions.west : Directions.east,
+    );
+  }
+  for (int i = 1; i < tileMatrix.length - 1; i++) {
+    markTilesOutsideLoopGroup(
+      tileMatrix: tileMatrix,
+      tile: tileMatrix[i].first,
+      comeFromDirectionVertical: Directions.west,
+      comeFromDirectionHorizontal: Directions.north,
+    );
+    markTilesOutsideLoopGroup(
+      tileMatrix: tileMatrix,
+      tile: tileMatrix[i].last,
+      comeFromDirectionHorizontal: Directions.east,
+      comeFromDirectionVertical: Directions.north,
+    );
+  }
+  for (int i = 0; i < tileMatrix.last.length; i++) {
+    final Tile tile = tileMatrix.last[i];
+    markTilesOutsideLoopGroup(
+      tileMatrix: tileMatrix,
+      tile: tile,
+      comeFromDirectionVertical: Directions.south,
+      comeFromDirectionHorizontal: i != tileMatrix[0].length - 1 ? Directions.west : Directions.east,
+    );
+  }
+}
+
+Tile? markTilesOutsideLoopGroup(
+    {required List<List<Tile>> tileMatrix,
+    required Tile tile,
+    required Directions comeFromDirectionVertical,
+    required Directions comeFromDirectionHorizontal}) {
+  if (tile.isChecked) return null;
+  // print(tile.position);
+  // printOutMatrix(tileMatrix, printOnly: true);
+  tile.isChecked = true;
+  if (!tile.isInLoop) {
+    tile.isInsideLoop = false;
+  }
+  for (final directionTarget in Directions.values) {
+    Directions nextHorizontalDirection = comeFromDirectionHorizontal;
+    Directions nextVerticalDirection = comeFromDirectionVertical;
+
+    if (tile.isInLoop) {
+      if (!tile.type.canGoInDirection(
+          goTo: directionTarget, sideOnTile: [comeFromDirectionVertical, comeFromDirectionHorizontal])) {
+        continue;
+      } else {
+        bool directionsAreAlongEachOther() {
+          return tile.type.directionsToConnect[0] == tile.type.directionsToConnect[1].opposite;
+        }
+
+        bool directionsAndComeFromAreTheSame() {
+          return tile.type.directionsToConnect.contains(comeFromDirectionHorizontal) &&
+              tile.type.directionsToConnect.contains(comeFromDirectionVertical);
+        }
+
+        if (!directionsAndComeFromAreTheSame() && !directionsAreAlongEachOther()) {
+          nextVerticalDirection = tile.type.directionsToConnect.firstWhere((element) => element.isVertical()).opposite;
+          nextHorizontalDirection =
+              tile.type.directionsToConnect.firstWhere((element) => element.isHorizontal()).opposite;
+        }
+      }
+    }
+    if (directionTarget.isHorizontal()) {
+      nextHorizontalDirection = directionTarget.opposite;
+    } else if (directionTarget.isVertical()) {
+      nextVerticalDirection = directionTarget.opposite;
+    }
+    final nextTile = tile.getTileAt(direction: directionTarget);
+    if (nextTile == null) continue;
+    markTilesOutsideLoopGroup(
+      tileMatrix: tileMatrix,
+      tile: nextTile,
+      comeFromDirectionVertical: nextVerticalDirection,
+      comeFromDirectionHorizontal: nextHorizontalDirection,
+    );
+  }
+  return null;
+}
+
+int countUnMarkedTiles(List<List<Tile>> tileMatrix) {
+  int count = 0;
+  for (final row in tileMatrix) {
+    for (final tile in row) {
+      if (tile.isInLoop || tile.isInsideLoop != null) continue;
+      tile.isInsideLoop = true;
+      count++;
+    }
+  }
+  return count;
+}
+
+void printOutMatrix(List<List<Tile>> tileMatrix, {bool printOnly = false}) {
+  print('');
+  final StringBuffer buffer = StringBuffer();
+  for (final row in tileMatrix) {
+    for (final tile in row) {
+      if (tile.isChecked && tile.isInLoop) {
+        buffer.write('%');
+      } else if (tile.isInLoop) {
+        buffer.write('#');
+      } else if (tile.isChecked) {
+        buffer.write('X');
+      } else {
+        buffer.write('.');
+      }
+    }
+    print(buffer);
+    buffer.clear();
   }
 }
 
@@ -149,4 +310,7 @@ Future<void> main() async {
     nextTiles.clear();
   }
   print(maxDistance);
+  markTilesOutsideLoop(tileMatrix);
+  // printOutMatrix(tileMatrix);
+  print(countUnMarkedTiles(tileMatrix));
 }

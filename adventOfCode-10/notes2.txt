@@ -1,0 +1,75 @@
+╔╔╗╔S╔╗╔╗╔╗╔╗╔╗╔═══╗
+╚║╚╝║║║║║║║║║║║║╔══╝
+╔╚═╗╚╝╚╝║║║║║║╚╝╚═╗╗
+╔══╝╔══╗║║╚╝╚╝?╔╗╔╝═
+╚═══╝╔═╝╚╝????╔╝╚╝╝╗
+║╔║╔═╝╔═══╗???╚╗╚║╗║
+║╔╔╝╔╗╚╗╔═╝╔╗??╚═══╗
+╗═╚═╝╚╗║║╔╗║╚╗╔═╗╔╗║
+╚.╚╗╚╔╝║║║║║╔╝╚╗║║╚╝
+╚╗╝╚╝╚═╝╚╝╚╝╚══╝╚╝.╚
+
+
+..........
+.S══════╗.
+.║╔════╗║.
+.║║....║║.
+.║║....║║.
+.║╚═╗╔═╝║.
+.║..║║..║.
+.╚══╝╚══╝.
+..........
+
+[ ╚ ] NORTH & WEST
+case 1
+═ came from south & west (bottom ╚eft)
+═ set came from horizonta╚ to west
+case 2
+═ came from south & east (bottom right)
+═ set came from horizonta╚ to west
+case 3
+═ came from north & east (top right) same as type connected directions
+═ set came from horizonta╚ to east
+case 4
+═ came from north & west (top ╚eft)
+═ set came from horizonta╚ to east,
+═ set came from vertica╚ to south
+═ conc╚usions: set opposites directions to connected directions in 3 out 4 cases
+
+[ ║ ] NORTH & SOUTH
+case 1
+═ came from west & south (bottom ╚eft)
+═ changes nothing
+═ conc╚usions: changes nothing
+
+
+ // ║ north, south a╚ways
+    //   east, west depends on side of the ti╚e if cameFrom
+    // case 1 ═ came from west
+    //  ═> ║  can go [north, south, west]
+    // case 2 ═ came from east
+    //   ║ <═  can go [north, south, east]
+
+    // ╔ east, south a╚ways
+    // case 1 ═ came from south & west
+    //  ═> ╔═
+    //    ^║
+    //    ║  can go [east, north, south, west]
+    // case 2 ═ came from south & east
+    //   ╔═
+    //   ║ <═
+    //    ^
+    //    ║  can go [east, south]
+    // case 3 ═ came from north & east
+    //  ║
+    //  V
+    //   <═
+    //   ╔═
+    //   ║  can go [east, north, south, west]
+    // case 4 ═ came from north & west
+    //     ║
+    //     V
+    //  ═> ╔═
+    //     ║  can go [east, north, south, west]
+
+    // Vertica╚ or horizonta╚
