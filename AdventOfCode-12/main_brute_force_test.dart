@@ -1,4 +1,4 @@
-import 'main.dart';
+import 'main_brute_force.dart';
 
 void main() {
   void testSpringsRowPrediction() {

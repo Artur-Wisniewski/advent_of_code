@@ -1,4 +1,4 @@
-// tests for main.dart
+// tests for main_brute_force.dart
 
 import 'main.dart';
 
