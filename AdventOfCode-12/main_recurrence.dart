@@ -8,6 +8,8 @@ const String UNKNOWN_SPRING = '?';
 
 int numberOfOperations = 0;
 
+Map<(int, int, int), int> cache = {};
+
 int countPossibleVariations(
     List<String> conditionRecords, List<int> damagedSpringsGroups, int index, int groupIndex, int damagedCount) {
   numberOfOperations++;
@@ -15,15 +17,19 @@ int countPossibleVariations(
   bool isCountIsBiggerThanCurrentGroup() =>
       groupIndex < damagedSpringsGroups.length && damagedCount > damagedSpringsGroups[groupIndex];
 
+  if(cache.containsKey((index, groupIndex, damagedCount))){
+    return cache[(index, groupIndex, damagedCount)]!;
+  }
+
   if (isDamagedCountIsNotEmptyButGroupsEnded() || isCountIsBiggerThanCurrentGroup()) {
     return 0;
   }
 
   if (index == conditionRecords.length) {
-    if(groupIndex == damagedSpringsGroups.length - 1 && damagedCount == damagedSpringsGroups.last){
+    if (groupIndex == damagedSpringsGroups.length - 1 && damagedCount == damagedSpringsGroups.last) {
       return 1;
     }
-    if(groupIndex == damagedSpringsGroups.length && damagedCount == 0){
+    if (groupIndex == damagedSpringsGroups.length && damagedCount == 0) {
       return 1;
     }
     return 0;
@@ -68,22 +74,38 @@ int countPossibleVariations(
     }
   }
 
+  cache[(index, groupIndex, damagedCount)] = possibleVariationsSum;
   return possibleVariationsSum;
 }
 
-//
 Future<void> main() async {
-  final DateTime now = DateTime.now();
   List<String> input = await getInput(fileName: 'input.txt');
-  int possibleVariationsSum = 0;
-  for (final String line in input) {
-    final [springsRowText, damedSpringsText] = line.split(' ');
-    final List<String> springsRow = springsRowText.split('');
-    final List<int> damagedSpringsGroups = damedSpringsText.split(',').map((e) => int.parse(e)).toList();
-    final int possibleVariations = countPossibleVariations(springsRow, damagedSpringsGroups, 0, 0, 0);
-    possibleVariationsSum += possibleVariations;
+  for (final isPart2 in [true, false]) {
+    final DateTime now = DateTime.now();
+    numberOfOperations = 0;
+    int possibleVariationsSum = 0;
+    for (final String line in input) {
+      var [springsRowText, damagedSpringsText] = line.split(' ');
+      late final List<String> springsRow;
+      late final List<int> damagedSpringsGroups;
+      if (isPart2) {
+        springsRow = List<String>.generate(5, (index) => springsRowText).join(UNKNOWN_SPRING).split('');
+        damagedSpringsGroups = List<String>.generate(5, (index) => damagedSpringsText)
+            .join(',')
+            .split(',')
+            .map((e) => int.parse(e))
+            .toList();
+      } else {
+        springsRow = springsRowText.split('');
+        damagedSpringsGroups = damagedSpringsText.split(',').map((e) => int.parse(e)).toList();
+      }
+      cache.clear();
+      final int possibleVariations = countPossibleVariations(springsRow, damagedSpringsGroups, 0, 0, 0);
+      possibleVariationsSum += possibleVariations;
+    }
+    print('part${isPart2 ? '2' : '1'}');
+    print('Answer: $possibleVariationsSum');
+    print('Time execution: ${DateTime.now().difference(now).inMicroseconds} microseconds');
+    print('Number of operations: $numberOfOperations');
   }
-  print('Anser part1: $possibleVariationsSum');
-  print('Time execution: ${DateTime.now().difference(now).inMicroseconds} microseconds');
-  print('Number of operations: $numberOfOperations');
 }
