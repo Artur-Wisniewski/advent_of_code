@@ -1,76 +1,52 @@
 import 'main.dart';
 
 void main() {
-  void testVertical1() {
-    // #.##..##.
-    // ..#.##.#.
-    // ##......#
-    // ##......#
-    // ..#.##.#.
-    // ..##..##.
-    // #.#.##.#.
 
-    // vertical: 5
-    // horizontal: null
-    void test1() {
-      // #.##..##.
-      // ..#.##.#.
-      // ##......#
-      // ##......#
-      // ..#.##.#.
-      // ..##..##.
-      // #.#.##.#.
-      final List<List<String>> chunk = [
-        ['#', '.', '#', '#', '.', '.', '#', '#', '.'],
-        ['.', '.', '#', '.', '#', '#', '.', '#', '.'],
-        ['#', '#', '.', '.', '.', '.', '.', '.', '#'],
-        ['#', '#', '.', '.', '.', '.', '.', '.', '#'],
-        ['.', '.', '#', '.', '#', '#', '.', '#', '.'],
-        ['.', '.', '#', '#', '.', '.', '#', '#', '.'],
-        ['#', '.', '#', '.', '#', '#', '.', '#', '.'],
-      ];
-
-      final int? verticalScore = findVerticalReflectionPosition(chunk);
-      final int? horizontalScore = findHorizontalReflectionPosition(chunk);
-      assert(verticalScore == 5, 'verticalScore: $verticalScore but expected: 5');
-      assert(horizontalScore == null, 'horizontalScore: $horizontalScore but expected: null');
+  test1() {
+    final List<String> chunkText = [
+      '##.#..#####.#',//
+      '##.#..#####.#',//
+      '#......#.#..#',//
+      '##..##......#',//
+      '..###....#.#.',//
+      '...###.#.#.##',//
+      '#.#.##..##.##',//
+      '#.#.#...##.##',//
+      '...###.#.#.##',//
+    ];
+    List<List<bool>> chunk = [];
+    for(int i = 0; i < chunkText.length; i++) {
+      chunk.add(chunkText[i].split('').map((e) => e == '#').toList());
     }
 
-    //#...##..#
-    // #....#..#
-    // ..##..###
-    // #####.##.
-    // #####.##.
-    // ..##..###
-    // #....#..#
-    // 4
-    void test2(){
-      //#...##..#
-      // #....#..#
-      // ..##..###
-      // #####.##.
-      // #####.##.
-      // ..##..###
-      // #....#..#
-      final List<List<String>> chunk = [
-        ['#', '.', '.', '.', '#', '#', '.', '.', '#'],
-        ['#', '.', '.', '.', '.', '#', '.', '.', '#'],
-        ['.', '.', '#', '#', '.', '.', '#', '#', '#'],
-        ['#', '#', '#', '#', '#', '.', '#', '#', '.'],
-        ['#', '#', '#', '#', '#', '.', '#', '#', '.'],
-        ['.', '.', '#', '#', '.', '.', '#', '#', '#'],
-        ['#', '.', '.', '.', '.', '#', '.', '.', '#'],
-      ];
-
-      final int? verticalScore = findVerticalReflectionPosition(chunk);
-      final int? horizontalScore = findHorizontalReflectionPosition(chunk);
-      assert(verticalScore == null, 'verticalScore: $verticalScore but expected: null');
-      assert(horizontalScore == 4, 'horizontalScore: $horizontalScore but expected: 4');
-    }
-
-    test1();
-    test2();
+    final score1 = findHorizontalReflectionPosition(chunk, isPart2: false);
+    final score2 = findHorizontalReflectionPosition(chunk, isPart2: true);
+    assert(score1 == 1, 'score1: $score1 but should be 1');
+    assert(score2 == 7, 'score2: $score2 but should be 7');
   }
 
-  testVertical1();
+  test2(){
+    final List<String> chunkText = [
+      '..##..#.#.##.#.',//
+      '#..#..##.#..#.#',//
+      '######..######.',//
+      '..#####........',//
+      '######.##.##.##',//
+      '######.##.##.##',//
+      '..#####........',//
+      '######..######.',//
+      '#.....##.#..#.#',//
+    ];
+    List<List<bool>> chunk = [];
+    for(int i = 0; i < chunkText.length; i++) {
+      chunk.add(chunkText[i].split('').map((e) => e == '#').toList());
+    }
+    int? score2 = findVerticalReflectionPosition(chunk, isPart2: true);
+    assert(score2 == null, 'score2: $score2 but should be null');
+    score2 = findHorizontalReflectionPosition(chunk, isPart2: true);
+    assert(score2 == 5, 'score2: $score2 but should be 500');
+  }
+
+  test1();
+  test2();
 }
