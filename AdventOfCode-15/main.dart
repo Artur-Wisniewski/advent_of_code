@@ -74,10 +74,4 @@ Future<void> main() async {
     print('${isPart2 ? 'Part2' : 'Part1'}');
     print(sum);
   }
-
-  /// If the operation character is a dash (-), go to the relevant box and remove
-  /// the lens with the given label if it is present in the box. Then, move any remaining lenses
-  /// as far forward in the box as they can go without changing their order,
-  /// filling any space made by removing the indicated lens.
-  /// (If no lens in that box has the given label, nothing happens.)
 }
