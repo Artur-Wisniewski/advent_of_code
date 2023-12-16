@@ -1,4 +1,4 @@
-import '../adventOfCode-10/main.dart';
+import 'dart:math';
 import '../utils.dart';
 
 enum FieldTypes {
@@ -117,12 +117,11 @@ void printEnergizedFields(List<List<String>> energizedFields, List<List<String>>
   print(sb.toString());
 }
 
-Future<void> main() async {
-  final input = await getInput(fileName: 'input.txt');
-  final List<List<String>> inputRecords = input.map((e) => e.split('')).toList();
+int countEnergizedFields(List<List<String>> inputRecords, Beam beam) {
   final List<List<String>> energizedFields =
       List.generate(inputRecords.length, (_) => List<String>.generate(inputRecords[0].length, (_) => '.'));
-  markEnergizedFields(energizedFields, inputRecords, Beam(0, 0, Directions.east));
+  seenBeams.clear();
+  markEnergizedFields(energizedFields, inputRecords, beam);
   int count = 0;
   for (List<String> row in energizedFields) {
     for (String field in row) {
@@ -131,5 +130,40 @@ Future<void> main() async {
       }
     }
   }
-  print('Number of energizedFields: $count');
+  return count;
+}
+
+Future<void> main() async {
+  final input = await getInput(fileName: 'input.txt');
+  final List<List<String>> inputRecords = input.map((e) => e.split('')).toList();
+
+  print('Part1: Number of energizedFields: ${countEnergizedFields(inputRecords, Beam(0, 0, Directions.east))}');
+
+  int maxEnergizedFields = 0;
+  // Top edge
+  for (int i = 0; i < inputRecords[0].length; i++) {
+    print('Top: ${(((i + 1) / inputRecords[0].length) * 25).toInt()}%');
+    maxEnergizedFields = max(maxEnergizedFields, countEnergizedFields(inputRecords, Beam(i, 0, Directions.south)));
+  }
+
+  // Right edge
+  for (int i = 0; i < inputRecords.length; i++) {
+    print('Right: ${(((i + 1) / inputRecords.length) * 25).toInt()+25}%');
+    maxEnergizedFields = max(
+        maxEnergizedFields, countEnergizedFields(inputRecords, Beam(inputRecords[i].length - 1, i, Directions.west)));
+  }
+
+  // Bottom edge
+  for (int i = 0; i < inputRecords[inputRecords.length - 1].length; i++) {
+    print('Bottom: ${(((i + 1) / inputRecords[inputRecords.length - 1].length) * 25).toInt()+50}%');
+    maxEnergizedFields =
+        max(maxEnergizedFields, countEnergizedFields(inputRecords, Beam(i, inputRecords.length - 1, Directions.north)));
+  }
+
+  // Left edge
+  for (int i = 0; i < inputRecords.length; i++) {
+    print('Left: ${(((i + 1)) / (inputRecords.length) * 25).toInt()+75}%');
+    maxEnergizedFields = max(maxEnergizedFields, countEnergizedFields(inputRecords, Beam(0, i, Directions.east)));
+  }
+  print('Part2: Number of energizedFields: $maxEnergizedFields');
 }
