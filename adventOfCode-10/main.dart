@@ -37,6 +37,24 @@ enum Directions {
       Directions.west => true,
     };
   }
+
+  Directions get leftMirror {
+    return switch (this) {
+      Directions.north => Directions.west,
+      Directions.south => Directions.east,
+      Directions.east => Directions.south,
+      Directions.west => Directions.north,
+    };
+  }
+
+  Directions get rightMirror {
+    return switch (this) {
+      Directions.north => Directions.east,
+      Directions.south => Directions.west,
+      Directions.east => Directions.north,
+      Directions.west => Directions.south,
+    };
+  }
 }
 
 enum TileTypes {
