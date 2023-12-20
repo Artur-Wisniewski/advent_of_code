@@ -1,13 +1,11 @@
 import java.io.File
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.absoluteValue
 
 fun readInputFile(): List<String> {
     return File("src/input.txt").readLines()
 }
 
-data class Instruction(val direction: Direction, val distance: Int, val color: String)
+data class Instruction(val direction: Direction, val distance: Int)
 
 enum class Direction(val offsetX: Int, val offsetY: Int) {
     UP(0, -1),
@@ -27,123 +25,75 @@ enum class Direction(val offsetX: Int, val offsetY: Int) {
     }
 }
 
-data class PlanConfig(val startX: Int, val endX: Int, val startY: Int, val endY: Int, val width: Int, val height: Int)
+data class Point(val x: Int, val y: Int)
 
-fun calculatePlanConfig(instructions: List<Instruction>): PlanConfig {
-    var currentPosition = Pair(0, 0)
-    var startWidth = 0
-    var endWidth = 0
-    var startHeight = 0
-    var endHeight = 0
+data class PlanConfig(
+    val points: List<Point>,
+    val boundary: Long,
+)
 
+fun getPlanConfig(instructions: List<Instruction>): PlanConfig {
+    var currentPosition = Point(0, 0)
+    var boundary = 0L
+    val points = mutableListOf<Point>()
+    points.add(currentPosition)
     for (instruction in instructions) {
-        currentPosition = Pair(
-            currentPosition.first + instruction.direction.offsetX * instruction.distance,
-            currentPosition.second + instruction.direction.offsetY * instruction.distance
+        boundary += instruction.distance
+        currentPosition = Point(
+            currentPosition.x + instruction.direction.offsetX * instruction.distance,
+            currentPosition.y + instruction.direction.offsetY * instruction.distance
         )
-        val direction = instruction.direction
-        if (direction == Direction.LEFT || direction == Direction.RIGHT) {
-            startWidth = min(startWidth, currentPosition.first)
-            endWidth = max(endWidth, currentPosition.first)
-        } else {
-            startHeight = min(startHeight, currentPosition.second)
-            endHeight = max(endHeight, currentPosition.second)
-        }
+        points.add(currentPosition)
     }
-    val width = endWidth - startWidth + 1
-    val height = endHeight - startHeight + 1
-    return PlanConfig(startWidth, endWidth, startHeight, endHeight, width, height)
+    return PlanConfig(points, boundary)
 }
 
-fun createPlan(instructions: List<Instruction>, planConfig: PlanConfig): MutableList<MutableList<Boolean>> {
-    val width = planConfig.width
-    val height = planConfig.height
-    val startWidth = planConfig.startX
-    val startHeight = planConfig.startY
-
-    val plan = mutableListOf<MutableList<Boolean>>()
-    for (i in 0 until height) {
-        plan.add(mutableListOf())
-        for (j in 0 until width) {
-            plan[i].add(false)
-        }
+// https://en.wikipedia.org/wiki/Shoelace_formula
+// https://en.wikipedia.org/wiki/Pick%27s_theorem - number of points inside polygon
+// Credits: https://www.youtube.com/watch?v=bGWK76_e-LM
+fun countShoeLanceFormula(config: PlanConfig): Long {
+    var sum = 0L
+    val points = config.points
+    val b = config.boundary
+    for (i in 0 until points.size - 1) {
+        val yI = points[i].y
+        val xIMinus1 = points[if (0 <= i - 1) i - 1 else points.size - 1].x
+        val xIPlus1 = points[i + 1 % points.size].x
+        val difference = xIMinus1 - xIPlus1
+        val result: Long = yI * difference.toLong()
+        sum += result
     }
-    var currentPosition = Pair(abs(startWidth), abs(startHeight))
-    for (instruction in instructions) {
-        val direction = instruction.direction
-        val distance = instruction.distance
-        for (i in 0 until distance) {
-            plan[currentPosition.second][currentPosition.first] = true
-            currentPosition =
-                Pair(currentPosition.first + direction.offsetX, currentPosition.second + direction.offsetY)
-        }
-    }
-    return plan
-}
-
-fun printPlan(plan: List<List<Boolean>>, planConfig: PlanConfig) {
-    for ((i, row) in plan.withIndex()) {
-        for ((j, cell) in row.withIndex()) {
-            if (i == abs(planConfig.startY) && j == abs(planConfig.startX)) {
-                print("S")
-                continue
-            }
-            print(if (cell) "X" else ".")
-        }
-        println()
-    }
-}
-
-fun countInnerLava(plan: MutableList<MutableList<Boolean>>, firstPoint: Pair<Int, Int>, planConfig: PlanConfig): Int {
-    var count = 0
-    val queue = ArrayDeque<Pair<Int, Int>>()
-    queue.add(firstPoint)
-    while (queue.isNotEmpty()) {
-        val point = queue.removeFirst()
-        if (plan[point.second][point.first]) continue
-        plan[point.second][point.first] = true
-        count++
-        if (point.first + 1 < planConfig.width && !plan[point.second][point.first + 1]) {
-            queue.add(Pair(point.first + 1, point.second))
-        }
-        if (point.first - 1 >= 0 && !plan[point.second][point.first - 1]) {
-            queue.add(Pair(point.first - 1, point.second))
-        }
-
-        if (point.second + 1 < planConfig.height && !plan[point.second + 1][point.first]) {
-            queue.add(Pair(point.first, point.second + 1))
-        }
-
-        if (point.second - 1 >= 0 && !plan[point.second - 1][point.first]) {
-            queue.add(Pair(point.first, point.second - 1))
-        }
-    }
-    return count
-}
-
-fun countOuterLava(instructions: List<Instruction>): Int {
-    var count = 0
-    for (instruction in instructions) {
-        count += instruction.distance
-    }
-    return count
+    val i = (sum / 2).absoluteValue
+    val A = i - (b / 2) + 1
+    return A + b
 }
 
 fun main() {
     val inputLines = readInputFile()
     val instructions = mutableListOf<Instruction>()
     for (line in inputLines) {
-        val (direction, distance, color) = line.split(" ")
-        instructions.add(Instruction(Direction.fromLetter(direction[0]), distance.toInt(), color))
+        val (direction, distance, _) = line.split(" ")
+        instructions.add(Instruction(Direction.fromLetter(direction[0]), distance.toInt()))
     }
-    val planConfig = calculatePlanConfig(instructions)
-    val plan = createPlan(instructions, planConfig)
-//    printPlan(plan, planConfig)
-    print(
-        countOuterLava(instructions) + countInnerLava(
-            plan = plan,
-            firstPoint = (Pair(abs(planConfig.startX) + 1, abs(planConfig.startY) + 1)),
-            planConfig = planConfig
-        )
-    )
+    val planConfig = getPlanConfig(instructions)
+    println(countShoeLanceFormula(planConfig))
+
+    val part2Instructions = mutableListOf<Instruction>()
+    for (line in inputLines) {
+        val (_, _, part2Text) = line.split(" ")
+        val part2TextTrim = part2Text.substring(1, part2Text.length - 1)
+        val directionNumber = part2TextTrim.last().toString().toInt()
+        val direction: Direction = when (directionNumber) {
+            3 -> Direction.fromLetter('U')
+            2 -> Direction.fromLetter('L')
+            1 -> Direction.fromLetter('D')
+            0 -> Direction.fromLetter('R')
+            else -> throw IllegalArgumentException("Unknown direction $directionNumber")
+        }
+        val distanceHex = part2TextTrim.substring(1, part2TextTrim.length - 1)
+        val distance = distanceHex.toInt(16)
+        part2Instructions.add(Instruction(direction, distance))
+    }
+    val planConfig2 = getPlanConfig(part2Instructions)
+    println(countShoeLanceFormula(planConfig2))
 }
