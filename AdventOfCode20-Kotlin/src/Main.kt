@@ -58,9 +58,6 @@ class Conjunction(
     override fun send(): List<Pulse> {
         if (memory.size == senders.size) {
             if (memory.values.all { isHigh -> isHigh }) {
-                if (name == "rg") {
-                    println("rg")
-                }
                 if (addressModules.isNotEmpty()) {
                     return addressModules.map { addressModule -> Pulse(this, false, addressModule) }.toList()
                 } else {
@@ -158,7 +155,7 @@ fun main() {
     val gSHighPulsesIndex = mutableListOf<Int>()
     var index = 1L
     while (true) {
-        var pulses = modules.find({ module -> module.name == "broadcaster" })!!.send()
+        var pulses = modules.find { module -> module.name == "broadcaster" }!!.send()
         while (pulses.isNotEmpty()) {
             val newPulses = mutableListOf<Pulse>()
             for (pulse in pulses) {
