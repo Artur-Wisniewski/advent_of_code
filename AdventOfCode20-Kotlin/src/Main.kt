@@ -58,6 +58,9 @@ class Conjunction(
     override fun send(): List<Pulse> {
         if (memory.size == senders.size) {
             if (memory.values.all { isHigh -> isHigh }) {
+                if (name == "rg") {
+                    println("rg")
+                }
                 if (addressModules.isNotEmpty()) {
                     return addressModules.map { addressModule -> Pulse(this, false, addressModule) }.toList()
                 } else {
@@ -111,9 +114,6 @@ fun main() {
         val (_, connectedModulesText) = line.split(" -> ")
         val addressesNames = connectedModulesText.split(", ")
         val addresses = modules.filter { address -> addressesNames.contains(address.name) }
-        if (addresses.isEmpty()) {
-            println("empty")
-        }
         module.addressModules.addAll(addresses)
     }
     for (module in modules) {
@@ -141,8 +141,9 @@ fun main() {
                 val receiver = pulse.receiver
                 receiver?.receive(pulse)
                 val sendPulses = receiver?.send()
-                if (sendPulses != null)
+                if (sendPulses != null) {
                     newPulses.addAll(sendPulses)
+                }
             }
             pulses = newPulses
         }
@@ -150,4 +151,48 @@ fun main() {
     println("Part 1")
     println("high: $highPulsesCounter low: $lowPulsesCounter")
     println(highPulsesCounter * lowPulsesCounter)
+
+    val kDHighPulsesIndexes = mutableListOf<Int>()
+    val zFHighPulsesIndex = mutableListOf<Int>()
+    val vGHighPulsesIndex = mutableListOf<Int>()
+    val gSHighPulsesIndex = mutableListOf<Int>()
+    var index = 1L
+    while (true) {
+        var pulses = modules.find({ module -> module.name == "broadcaster" })!!.send()
+        while (pulses.isNotEmpty()) {
+            val newPulses = mutableListOf<Pulse>()
+            for (pulse in pulses) {
+                val receiver = pulse.receiver
+                receiver?.receive(pulse)
+                val sendPulses = receiver?.send()
+                if (sendPulses != null) {
+                    newPulses.addAll(sendPulses)
+                }
+                if (pulse.sender.name == "kd" && pulse.isHigh() && pulse.receiver?.name == "rg") {
+                    kDHighPulsesIndexes.add(index.toInt())
+                }
+                if (pulse.sender.name == "zf" && pulse.isHigh() && pulse.receiver?.name == "rg") {
+                    zFHighPulsesIndex.add(index.toInt())
+                }
+                if (pulse.sender.name == "vg" && pulse.isHigh() && pulse.receiver?.name == "rg") {
+                    vGHighPulsesIndex.add(index.toInt())
+                }
+                if (pulse.sender.name == "gs" && pulse.isHigh() && pulse.receiver?.name == "rg") {
+                    gSHighPulsesIndex.add(index.toInt())
+                }
+            }
+            pulses = newPulses
+        }
+        if (kDHighPulsesIndexes.size >= 2 && zFHighPulsesIndex.size >= 2 && vGHighPulsesIndex.size >= 2 && gSHighPulsesIndex.size >= 2) {
+            break
+        }
+        index++
+    }
+    println("Part 2")
+    val cycleKD = kDHighPulsesIndexes[1] - kDHighPulsesIndexes[0] * 1L
+    val cycleZF = zFHighPulsesIndex[1] - zFHighPulsesIndex[0]* 1L
+    val cycleVG = vGHighPulsesIndex[1] - vGHighPulsesIndex[0]* 1L
+    val cycleGS = gSHighPulsesIndex[1] - gSHighPulsesIndex[0]* 1L
+    val score = cycleKD * cycleZF * cycleVG * cycleGS
+    println("score: $score")
 }
