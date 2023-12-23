@@ -68,10 +68,8 @@ class Snapshot(val bricks: MutableList<Brick>) {
         }
     }
 
-    // 12 index cos nie tak jest
-    fun countBricksCanSafelyDisintegrate(): Int {
+    fun setBrickRelations() {
         bricks.sortBy { it.bottomEdge.z }
-        var count = 0
         for (upperBrick in bricks) {
             for (lowerBrick in bricks) {
                 if (upperBrick.isOverlapWith(lowerBrick) && upperBrick.bottomEdge.z == lowerBrick.topEdge.z + 1) {
@@ -80,12 +78,44 @@ class Snapshot(val bricks: MutableList<Brick>) {
                 }
             }
         }
+    }
+
+    fun countBricksCanSafelyDisintegrate(): Int {
+        var count = 0
         for (brick in bricks) {
-            if (brick.support.all { it.layOn.size > 1 }) {
+            if (canBrickBeSafelyDisintegrate(brick)) {
                 count++
             }
         }
         return count
+    }
+
+    private fun canBrickBeSafelyDisintegrate(brick: Brick): Boolean {
+        return brick.support.all { it.layOn.size > 1 }
+    }
+
+    fun countSupportedBricks(brick: Brick): Int {
+        val queue = ArrayDeque(brick.support.filter { it.layOn.size == 1 })
+        val fallingBricks = mutableSetOf<Pair<Position3D, Position3D>>()
+        fallingBricks.add(Pair(brick.topEdge, brick.bottomEdge))
+        while (queue.isNotEmpty()) {
+            val currentBrick = queue.removeFirst()
+            if(currentBrick.layOn.size == currentBrick.layOn.filter { fallingBricks.contains(Pair(it.topEdge, it.bottomEdge)) }.size){
+                fallingBricks.add(Pair(currentBrick.topEdge, currentBrick.bottomEdge))
+                queue.addAll(currentBrick.support)
+            }
+        }
+        return fallingBricks.size - 1
+    }
+
+    fun sumBricksCannotBeRemoveSafely(): Int{
+        var sum = 0
+        for(brick in bricks){
+            if(!canBrickBeSafelyDisintegrate(brick)){
+                sum += countSupportedBricks(brick)
+            }
+        }
+        return sum
     }
 }
 
@@ -97,6 +127,10 @@ fun main() {
     }
     val snapshot = Snapshot(bricks)
     snapshot.setBricksNextPosition()
+    snapshot.setBrickRelations()
     val count = snapshot.countBricksCanSafelyDisintegrate()
+    println("Part1")
     println(count)
+    println("Part2")
+    println(snapshot.sumBricksCannotBeRemoveSafely())
 }
