@@ -1,6 +1,7 @@
 import java.io.File
+import kotlin.math.max
 
-data class NodePath(val node: Node, val distance: Int)
+class NodePath(val node: Node, val distance: Int)
 
 enum class Category {
     START,
@@ -16,7 +17,12 @@ data class Node(
 
 data class Position(val x: Int, val y: Int)
 
-fun mapGraph(grid: List<CharArray>, startPosition: Position, endPosition: Position): Node {
+fun mapGraph(
+    grid: List<CharArray>,
+    startPosition: Position,
+    endPosition: Position,
+    isDoubleConnected: Boolean = false
+): Node {
     var currentNode = Node(category = Category.START, position = startPosition)
     val startNode = currentNode
     var currentPosition = startPosition
@@ -45,8 +51,10 @@ fun mapGraph(grid: List<CharArray>, startPosition: Position, endPosition: Positi
             if (nextSign == '#') {
                 continue
             }
-            if (nextSign == '>' && nextPosition == west || nextSign == '<' && nextPosition == east || nextSign == '^' && nextPosition == south || nextSign == 'v' && nextPosition == north) {
-                continue
+            if (!isDoubleConnected) {
+                if (nextSign == '>' && nextPosition == west || nextSign == '<' && nextPosition == east || nextSign == '^' && nextPosition == south || nextSign == 'v' && nextPosition == north) {
+                    continue
+                }
             }
             if (nextPosition == endPosition) {
                 break
@@ -59,7 +67,8 @@ fun mapGraph(grid: List<CharArray>, startPosition: Position, endPosition: Positi
             distanceCount++
         } else {
             var newNode: Node
-            if (allNodes.none { it.position == currentPosition }) {
+            val isNewMode = allNodes.none { it.position == currentPosition }
+            if (isNewMode) {
                 if (possibleNextPositions.isEmpty()) {
                     seenEnd = true
                     newNode = Node(position = currentPosition, category = Category.END)
@@ -72,9 +81,16 @@ fun mapGraph(grid: List<CharArray>, startPosition: Position, endPosition: Positi
             }
             if (currentNode.connections.none { it.node.position == newNode.position && it.distance == distanceCount }) {
                 currentNode.connections.add(NodePath(newNode, distanceCount))
+                if (isDoubleConnected)
+                    newNode.connections.add(NodePath(currentNode, distanceCount))
             }
-            for (nextPosition in possibleNextPositions) {
-                nodesToCheck.add(Pair(newNode, nextPosition))
+            if (isNewMode) {
+                for (nextPosition in possibleNextPositions) {
+                    nodesToCheck.add(Pair(newNode, nextPosition))
+                }
+            }
+            if (nodesToCheck.isEmpty()) {
+                break
             }
             val nextNodeInfo = nodesToCheck.removeFirst()
             previousPosition = currentPosition
@@ -86,35 +102,32 @@ fun mapGraph(grid: List<CharArray>, startPosition: Position, endPosition: Positi
     return startNode
 }
 
-fun findLargestPathInGraph(graph: Node): Int {
-    val nodesToCheck = ArrayDeque<Pair<Node, Int>>()
-    val seenNodes = mutableSetOf<Node>()
-    var largestPath = 0
-    nodesToCheck.add(Pair(graph, 0))
-    do {
-        val nextNodeInfo = nodesToCheck.removeFirst()
-        val nextNode = nextNodeInfo.first
-        val nextDistance = nextNodeInfo.second
-        if (nextNode.category == Category.END) {
-            if (nextDistance > largestPath) {
-                largestPath = nextDistance
-            }
-        } else {
-            for (connection in nextNode.connections) {
-                if (seenNodes.contains(connection.node)) {
-                    continue
-                }
-                nodesToCheck.add(Pair(connection.node, nextDistance + connection.distance))
-            }
+var seen = mutableSetOf<Node>()
+fun findLongestDistance(node: Node): Int {
+    if(node.category == Category.END) {
+        return 0
+    }
+
+    var longestDistnace = Int.MIN_VALUE
+    seen.add(node)
+    for(connection in node.connections) {
+        if (seen.contains(connection.node)) {
+            continue
         }
-    } while (nodesToCheck.isNotEmpty())
-    return largestPath
+        val distance = findLongestDistance(connection.node) + connection.distance
+        longestDistnace = max(distance, longestDistnace)
+    }
+    seen.remove(node)
+    return longestDistnace
 }
 
 fun main() {
     val lines = File("src/input.txt").readLines()
     val grid: List<CharArray> = lines.map { it.toCharArray() }
-    val graphStartingNode = mapGraph(grid, Position(1, 0), Position(grid.size - 2, grid[0].size - 1))
-    println("Part1")
-    println(findLargestPathInGraph(graphStartingNode))
+//    val acyclicGraphStartingNode = mapGraph(grid, Position(1, 0), Position(grid.size - 2, grid[0].size - 1))
+//    println("Part1")
+//    println(findLargestPathInAcyclicGraph(acyclicGraphStartingNode))
+    println("Part2")
+    val cyclicGraphStartingNode = mapGraph(grid, Position(1, 0), Position(grid.size - 2, grid[0].size - 1), true)
+    println(findLongestDistance(cyclicGraphStartingNode))
 }
